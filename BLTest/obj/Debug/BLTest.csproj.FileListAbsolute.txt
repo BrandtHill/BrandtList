@@ -1,0 +1,8 @@
+C:\CSharp\BrandtList\BLTest\bin\Debug\BLTest.exe.config
+C:\CSharp\BrandtList\BLTest\bin\Debug\BLTest.exe
+C:\CSharp\BrandtList\BLTest\bin\Debug\BLTest.pdb
+C:\CSharp\BrandtList\BLTest\bin\Debug\BrandtList.dll
+C:\CSharp\BrandtList\BLTest\bin\Debug\BrandtList.pdb
+C:\CSharp\BrandtList\BLTest\obj\Debug\BLTest.csprojResolveAssemblyReference.cache
+C:\CSharp\BrandtList\BLTest\obj\Debug\BLTest.exe
+C:\CSharp\BrandtList\BLTest\obj\Debug\BLTest.pdb
