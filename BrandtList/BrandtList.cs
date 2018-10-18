@@ -5,67 +5,51 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-/*
-* An implementation of ICollection<T> that's basically an ArrayList.
-* Just for fun. Might add some cool/useful list functions.
-* The list will just be a collection of whatever objects, and 
-* the order will be invisible to the user.
-* Author: Brandt Hill
-*/
+/// <summary>
+/// An implementation of ICollection<T> just for fun. Its underlying data structure
+/// is an array of structs that contain a generic object and a boolean. The order is
+/// invisible to the user, and this implementation aims to be super space efficient,
+/// reusing empty array cells before growing. I might add some cool functionality later.
+/// Author: Brandt Hill
+/// </summary>
 namespace BrandtList
 {
     public class BrandtList<T> : ICollection<T>
     {
         private const int DEFAULTSIZE = 1024;
-        private int size, count, firstAvailable, firstInUse, lastInUse;
-        private T[] array;
-        private bool[] inUse;
+        private int size, firstAvailable, firstInUse, lastInUse;
+        private Thing[] array;
 
-        public int Count
-        {
-            get
-            {
-                return count;
-            }
+        private struct Thing{
+            public T Item { get; set; }
+            public bool InUse { get; set; }
         }
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public int Count { get; private set; }
+
+        public bool IsReadOnly => false;
 
         public BrandtList(int size)
         {
             this.size = size;
-            array = new T[size];
-            inUse = new bool[size];
-            count = 0;
+            array = new Thing[size];
+            Count = 0;
             firstAvailable = 0;
             firstInUse = 0;
             lastInUse = 0;
         }
 
-        public BrandtList()
+        public BrandtList() : this(DEFAULTSIZE)
         {
-            this.size = DEFAULTSIZE;
-            array = new T[size];
-            inUse = new bool[size];
-            count = 0;
-            firstAvailable = 0;
-            firstInUse = 0;
-            lastInUse = 0;
         }
 
         public void Add(T item)
         {
-            if (count == size)
-                ResizeArray();
-            array[firstAvailable] = item;
-            inUse[firstAvailable] = true;
-            count++;
+            if (Count == size) ResizeArray();
+
+            array[firstAvailable].Item = item;
+            array[firstAvailable].InUse = true;
+            Count++;
             firstInUse = (firstAvailable < firstInUse) ? firstAvailable : firstInUse;
             lastInUse = (firstAvailable > lastInUse) ? firstAvailable : lastInUse;
             UpdateFirstAvailable();
@@ -75,17 +59,17 @@ namespace BrandtList
         {
             size *= 2;
             Array.Resize(ref array, size);
-            Array.Resize(ref inUse, size);
+            UpdateFirstAvailable();
         }
 
         public void Clear()
         {
             for(int i = 0; i < size; i++)
             {
-                array[i] = default(T);
-                inUse[i] = false;
+                array[i].Item = default(T);
+                array[i].InUse = false;
             }
-            count = 0;
+            Count = 0;
             firstAvailable = 0;
             firstInUse = 0;
             lastInUse = 0;
@@ -95,7 +79,7 @@ namespace BrandtList
         {
             for(int i = firstInUse; i <= lastInUse; i++)
             {
-                if (inUse[i] && item.Equals(array[i]))
+                if (array[i].InUse && item.Equals(array[i].Item))
                 {
                     return true;
                 }
@@ -108,32 +92,38 @@ namespace BrandtList
             int num = 0;
             for (int i = firstInUse; i <= lastInUse; i++)
             {
-                if (inUse[i] && item.Equals(array[i]))
+                if (array[i].InUse && item.Equals(array[i].Item))
+                {
                     num++;
+                }
             }
             return num;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public void CopyTo(T[] destArray, int arrayIndex)
         {
             int index = firstInUse;
-            for (int i = arrayIndex; i < array.Length; i++)
+            for (int i = arrayIndex; i < destArray.Length; i++)
             {
-                while (!inUse[index])
+                while (!array[index].InUse)
                 {
                     index++;
-                    if (index > lastInUse)
-                        return;
+                    if (index > lastInUse) return;
                 }
-                array[i] = this.array[i];
+                destArray[i] = array[i].Item;
             }
+        }
+
+        public T[] ToArray()
+        {
+            return array.Where(i => i.InUse).Select(i => i.Item).ToArray();
         }
 
         private void UpdateFirstAvailable()
         {
             for (int i = firstAvailable + 1; i < size; i++)
             {
-                if (!inUse[i])
+                if (!array[i].InUse)
                 {
                     firstAvailable = i;
                     return;
@@ -143,14 +133,14 @@ namespace BrandtList
 
         private void UpdateFirstInUse()
         {
-            if (count == 0)
+            if (Count == 0)
             {
                 lastInUse = -1;
                 return;
             }
             for (int i = firstInUse + 1; i <= lastInUse; i++)
             {
-                if (inUse[i])
+                if (array[i].InUse)
                 {
                     firstInUse = i;
                     return;
@@ -160,14 +150,14 @@ namespace BrandtList
 
         private void UpdateLastInUse()
         {
-            if(count == 0)
+            if(Count == 0)
             {
                 lastInUse = -1;
                 return;
             }
             for (int i = lastInUse - 1; i >= firstInUse ; i--)
             {
-                if (inUse[i])
+                if (array[i].InUse)
                 {
                     lastInUse = i;
                     return;
@@ -179,15 +169,13 @@ namespace BrandtList
         {
             for (int i = firstInUse; i < size; i++)
             {
-                if (inUse[i] && item.Equals(array[i]))
+                if (array[i].InUse && item.Equals(array[i].Item))
                 {
-                    array[i] = default(T);
-                    inUse[i] = false;
-                    count--;
-                    if (i == firstInUse)
-                        UpdateFirstInUse();
-                    if (i == lastInUse)
-                        UpdateLastInUse();
+                    array[i].Item = default(T);
+                    array[i].InUse = false;
+                    Count--;
+                    if (i == firstInUse)    UpdateFirstInUse();
+                    if (i == lastInUse)     UpdateLastInUse();
                     return true;
                 }
             }
@@ -197,17 +185,15 @@ namespace BrandtList
         public int RemoveAll(T item)
         {
             int num = 0;
-            for (int i = firstInUse; i < lastInUse; i++)
+            for (int i = firstInUse; i <= lastInUse; i++)
             {
-                if (inUse[i] && item.Equals(array[i]))
+                if (array[i].InUse && item.Equals(array[i].Item))
                 {
-                    array[i] = default(T);
-                    inUse[i] = false;
-                    count--;
-                    if (i == firstInUse)
-                        UpdateFirstInUse();
-                    if (i == lastInUse)
-                        UpdateLastInUse();
+                    array[i].Item = default(T);
+                    array[i].InUse = false;
+                    Count--;
+                    if (i == firstInUse)    UpdateFirstInUse();
+                    if (i == lastInUse)     UpdateLastInUse();
                     num++;
                 }
             }
@@ -218,8 +204,7 @@ namespace BrandtList
         {
             for(int i = firstInUse; i <= lastInUse; i++)
             {
-                if (inUse[i])
-                    yield return array[i];
+                if (array[i].InUse) yield return array[i].Item;
             }
         }
 

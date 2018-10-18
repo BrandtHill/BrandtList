@@ -3,3 +3,9 @@ C:\CSharp\BrandtList\BrandtList\bin\Debug\BrandtList.pdb
 C:\CSharp\BrandtList\BrandtList\obj\Debug\BrandtList.csprojResolveAssemblyReference.cache
 C:\CSharp\BrandtList\BrandtList\obj\Debug\BrandtList.dll
 C:\CSharp\BrandtList\BrandtList\obj\Debug\BrandtList.pdb
+C:\BrandtList\BrandtList\bin\Debug\BrandtList.dll
+C:\BrandtList\BrandtList\bin\Debug\BrandtList.pdb
+C:\BrandtList\BrandtList\obj\Debug\BrandtList.csprojAssemblyReference.cache
+C:\BrandtList\BrandtList\obj\Debug\BrandtList.csproj.CoreCompileInputs.cache
+C:\BrandtList\BrandtList\obj\Debug\BrandtList.dll
+C:\BrandtList\BrandtList\obj\Debug\BrandtList.pdb
